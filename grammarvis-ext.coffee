@@ -77,13 +77,27 @@ cropBase64Image = (imgData, screenshotCoordinates, callback) ->
     callback(context.canvas.toDataURL("image/png"))
   imageObj.src = imgData
 
+sendMessage = (message) ->
+  console.log 'sending message:'
+  console.log message
+  chrome.tabs.getSelected(null, (tab) ->
+    chrome.tabs.sendMessage(tab.id, message)
+  )
+
 document.addEventListener('DOMContentLoaded', () ->
   console.log 'content loaded!'
-  now.ready(() ->
-    #doOncePageLoads()
-    chrome.tabs.executeScript(null, {'file': 'browserexec.js'})
-    #chrome.tabs.executeScript(null, {'file': 'setNoteBodyWhite.js'})
+  $('#lang_zh').click(() ->
+    sendMessage({'selectedLanguage': 'zh'})
   )
+  
+  $('#lang_ja').click(() ->
+    sendMessage({'selectedLanguage': 'ja'})
+  )
+  #now.ready(() ->
+  #  #doOncePageLoads()
+  #  chrome.tabs.executeScript(null, {'file': 'browserexec.js'})
+  #  #chrome.tabs.executeScript(null, {'file': 'setNoteBodyWhite.js'})
+  #)
 )
 
 ###

@@ -2,15 +2,13 @@
 <html>
   <head>
     <title>Getting Started Extension's Popup</title>
-<link rel="stylesheet" type="text/css" href="https://localhost:1358/jquery-ui-1.10.0.custom.min.css">
+<link rel="stylesheet" type="text/css" href="css/ui-lightness/jquery-ui-1.10.0.custom.min.css">
 
-<script src="https://localhost:1358/jquery-1.9.0.js"></script>
-<script src="https://localhost:1358/jquery-ui-1.10.0.custom.min.js"></script>
-<script src="https://localhost:1358/nowjs/now2.js"></script>
-<script src="https://localhost:1358/async.js"></script>
-<script src="https://localhost:1358/visutils.js"></script>
+<script src="js/jquery-1.9.0.js"></script>
+<script src="js/jquery-ui-1.10.0.custom.min.js"></script>
+<script src="async.js"></script>
+<script src="visutils.js"></script>
 <script src="grammarvis-ext.js"></script>
-
     <!--
       - JavaScript and HTML must be in separate files: see our Content Security
       - Policy documentation[1] for details and explanation.
@@ -23,8 +21,14 @@
     
   </head>
   <body>
-<!--<iframe id="frame" src="http://localhost:1357/?lang=zh&sentence=是我们银河系的近邻。" onLoad="autoResize('frame')">-->
-<div id="sentenceDisplay" style="display: table; min-width: 700px; max-height: 300px;"></div>
+<!--<iframe id="frame" src="http://geza.csail.mit.edu:1357/?lang=zh&sentence=是我们银河系的近邻。" onLoad="autoResize('frame')">-->
+<div>
+<input type="radio" name="selectedLanguage" value="zh" id="lang_zh">
+<label for="lang_zh">zh</label>
+<input type="radio" name="selectedLanguage" value="ja" id="lang_ja">
+<label for="lang_ja">ja</label>
+</div>
+<!--<div id="sentenceDisplay" style="display: table; min-width: 700px; max-height: 300px;"></div>-->
 
   </body>
 </html>

@@ -14,7 +14,7 @@ doOncePageLoads = () ->
   console.log 'loaded'
   #addSentence('是我们银河系的近邻。', 'zh')
 
-currentLanguage = 'ja'
+currentLanguage = 'zh'
 
 chrome.extension.onMessage.addListener((request, sender, sendResponse) ->
   console.log(sender.tab)
@@ -77,13 +77,27 @@ cropBase64Image = (imgData, screenshotCoordinates, callback) ->
     callback(context.canvas.toDataURL("image/png"))
   imageObj.src = imgData
 
+sendMessage = (message) ->
+  console.log 'sending message:'
+  console.log message
+  chrome.tabs.getSelected(null, (tab) ->
+    chrome.tabs.sendMessage(tab.id, message)
+  )
+
 document.addEventListener('DOMContentLoaded', () ->
   console.log 'content loaded!'
-  now.ready(() ->
-    #doOncePageLoads()
-    chrome.tabs.executeScript(null, {'file': 'browserexec.js'})
-    #chrome.tabs.executeScript(null, {'file': 'setNoteBodyWhite.js'})
+  $('#lang_zh').select(() ->
+    sendMessage({'selectedLanguage': 'zh'})
   )
+  
+  $('#lang_ja').select(() ->
+    sendMessage({'selectedLanguage': 'ja'})
+  )
+  #now.ready(() ->
+  #  #doOncePageLoads()
+  #  chrome.tabs.executeScript(null, {'file': 'browserexec.js'})
+  #  #chrome.tabs.executeScript(null, {'file': 'setNoteBodyWhite.js'})
+  #)
 )
 
 ###

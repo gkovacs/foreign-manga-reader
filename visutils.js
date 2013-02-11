@@ -8,7 +8,7 @@
     var depthToColor;
     depthToColor = function(depth) {
       var colors, i;
-      colors = '02468ACEF';
+      colors = '00000000000012345678ABCDEF';
       return '#' + ((function() {
         var _i, _results;
         _results = [];
@@ -238,7 +238,6 @@
     basediv.addClass('hovertext').attr('id', id);
     basediv.addClass('hovertext').addClass('textRegion');
     foreignText = hierarchyWithIdToTerminals(subHierarchy, lang);
-    console.log('foreign text: ' + foreignText);
     basediv.attr('foreignText', foreignText);
     translation = translations[foreignText];
     basediv.attr('translation', translation);
@@ -305,7 +304,9 @@
     return addSentences([sentence], lang, renderTarget);
   };
 
-  root.serverLocation = 'https://localhost:1358/getParseHierarchyAndTranslations';
+  if (!(root.serverLocation != null)) {
+    root.serverLocation = 'https://geza.csail.mit.edu:1358';
+  }
 
   addSentences = root.addSentences = function(sentences, lang, renderTarget) {
     var parseHierarchyAndTranslationsForLang, _ref;
@@ -315,11 +316,10 @@
     }
     if (!(renderTarget != null)) renderTarget = $('#sentenceDisplay');
     parseHierarchyAndTranslationsForLang = function(sentence, callback) {
-      return $.get(root.serverLocation + '?sentence=' + encodeURI(sentence) + '&lang=' + lang, function(resultData, resultStatus) {
+      return $.get(root.serverLocation + '/getParseHierarchyAndTranslations?sentence=' + encodeURI(sentence) + '&lang=' + encodeURI(lang), function(resultData, resultStatus) {
         var currentPair;
         resultData = JSON.parse(resultData);
         currentPair = [resultData.hierarchy, resultData.translations];
-        console.log(currentPair);
         return callback(null, currentPair);
       });
     };
