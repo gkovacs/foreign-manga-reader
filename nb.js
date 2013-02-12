@@ -16,18 +16,24 @@
     }
   };
 
-  $(document).ready(popupSentenceDisplay = $('<div id="popupSentenceDisplay">dialog content is here</div>'), popupSentenceDisplay.dialog({
+  $(document).ready(callOnceElementAvailable('.perspective', function() {
+    $('.perspective').css('height', parseInt($('.perspective').css('height').split('px').join('')) - 150);
+    return $('.perspective').css('top', parseInt($('.perspective').css('top').split('px').join('')) + 150);
+  }), callOnceElementAvailable('.nb-viewport', function() {
+    $('.nb-viewport').css('height', parseInt($('.nb-viewport').css('height').split('px').join('')) - 150);
+    return $('.nb-viewport').css('top', parseInt($('.nb-viewport').css('top').split('px').join('')) + 150);
+  }), root.serverLocation = 'http://geza.csail.mit.edu:1357', popupSentenceDisplay = $('<div id="popupSentenceDisplay">dialog content is here</div>'), popupSentenceDisplay.dialog({
     'autoOpen': false,
     'modal': false,
     'title': '',
     'position': ['right', 'top'],
     'zIndex': 99,
     'width': '100%',
-    'maxHeight': '500px',
+    'maxHeight': '150px',
     'create': function() {
-      return $(this).css("maxHeight", 500);
+      return $(this).css("maxHeight", 150);
     }
-  }).css('max-height', '500px'), callOnceElementAvailable('.location-shortbody-text', function() {
+  }).css('max-height', '150px'), callOnceElementAvailable('.location-shortbody-text', function() {
     var lang, _i, _len, _ref, _results;
     _ref = ['zh', 'ja'];
     _results = [];
@@ -86,7 +92,10 @@
     }
     if (selectedText !== root.currentText) {
       root.currentText = selectedText;
-      return haveNewText();
+      haveNewText();
+      return $('div.selection.selected').click(function() {
+        return $('#popupSentenceDisplay').dialog('open');
+      });
     }
   }, 300);
 

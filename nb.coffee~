@@ -11,6 +11,14 @@ callOnceElementAvailable = (element, callback) ->
     , 300)
 
 $(document).ready(
+  callOnceElementAvailable('.perspective', () ->
+    $('.perspective').css('height', parseInt($('.perspective').css('height').split('px').join('')) - 150)
+    $('.perspective').css('top', parseInt($('.perspective').css('top').split('px').join('')) + 150)
+  )
+  callOnceElementAvailable('.nb-viewport', () ->
+    $('.nb-viewport').css('height', parseInt($('.nb-viewport').css('height').split('px').join('')) - 150)
+  )
+  root.serverLocation = 'http://geza.csail.mit.edu:1357'
   popupSentenceDisplay = $('''<div id="popupSentenceDisplay">dialog content is here</div>''')
   popupSentenceDisplay.dialog({
     'autoOpen': false,
@@ -21,10 +29,10 @@ $(document).ready(
     'position': ['right', 'top'],
     'zIndex': 99,
     'width': '100%',
-    'maxHeight': '500px',
+    'maxHeight': '150px',
     'create': () ->
-      $(this).css("maxHeight", 500);        
-  }).css('max-height', '500px')
+      $(this).css("maxHeight", 150)
+  }).css('max-height', '150px')
   callOnceElementAvailable('.location-shortbody-text', () ->
     for lang in ['zh', 'ja']
       console.log lang
@@ -64,5 +72,8 @@ setInterval(() ->
   if selectedText != root.currentText
     root.currentText = selectedText
     haveNewText()
+    $('div.selection.selected').click(() ->
+      $('#popupSentenceDisplay').dialog('open')
+    )
 , 300)
 
