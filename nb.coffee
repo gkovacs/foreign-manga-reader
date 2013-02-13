@@ -47,6 +47,29 @@ getLineNumFromText = (selectedText) ->
       return parseInt(lineNum)
   return -1
 
+getCurrentDialog = () ->
+  for x,i in $('.location-lens')
+    if $(x).hasClass('selected')
+      return i
+  return -1
+
+goToDialog = (idx) ->
+  $($('.location-lens')[idx]).click()
+
+goToNextDialog = () ->
+  currentDialog = getCurrentDialog()
+  if currentDialog == -1
+    goToDialog(0)
+  else
+    goToDialog(currentDialog + 1)
+
+goToPreviousDialog = () ->
+  currentDialog = getCurrentDialog()
+  if currentDialog <= 0
+    goToDialog(0)
+  else
+    goToDialog(currentDialog - 1)
+
 $(document).ready(
   assignVariable('callOnceObjectAvailable', callOnceObjectAvailable)
   assignVariable('getLineNumFromText', getLineNumFromText)
@@ -71,14 +94,21 @@ $(document).ready(
     )
     console.log('done executing in page')
   )
-  callOnceElementAvailable('.perspective', () ->
-    $('.perspective').css('height', parseInt($('.perspective').css('height').split('px').join('')) - 150)
-    $('.perspective').css('top', parseInt($('.perspective').css('top').split('px').join('')) + 150)
+  $(document).keydown((e) ->
+    console.log e
+    if e.keyCode == 40 or e.keyCode == 39
+      goToNextDialog()
+    else if e.keyCode == 38 or e.keyCode == 37
+      goToPreviousDialog()
   )
-  callOnceElementAvailable('.nb-viewport', () ->
-    $('.nb-viewport').css('height', parseInt($('.nb-viewport').css('height').split('px').join('')) - 150)
-    $('.nb-viewport').css('top', parseInt($('.nb-viewport').css('top').split('px').join('')) + 150)
-  )
+  #callOnceElementAvailable('.perspective', () ->
+  #  $('.perspective').css('height', parseInt($('.perspective').css('height').split('px').join('')) - 150)
+  #  $('.perspective').css('top', parseInt($('.perspective').css('top').split('px').join('')) + 150)
+  #)
+  #callOnceElementAvailable('.nb-viewport', () ->
+  #  $('.nb-viewport').css('height', parseInt($('.nb-viewport').css('height').split('px').join('')) - 150)
+  #  $('.nb-viewport').css('top', parseInt($('.nb-viewport').css('top').split('px').join('')) + 150)
+  #)
   root.serverLocation = 'http://geza.csail.mit.edu:1357'
   popupSentenceDisplay = $('''<div id="popupSentenceDisplay">dialog content is here</div>''')
   popupSentenceDisplay.dialog({
