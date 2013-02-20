@@ -25,7 +25,6 @@
 
   chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
     var lineNum, parenIndex, parenIndexes, selectedHTML, selectedText, x;
-    console.log(sender.tab);
     if ((request.selectedText != null) && request.selectedText.length > 0) {
       $('#sentenceDisplay').html('');
       return addSentence(request.selectedText, currentLanguage);
@@ -54,9 +53,6 @@
       }
       $('#sentenceDisplay').html('');
       return addSentence(selectedText, currentLanguage);
-    } else if (request.screenshotCoordinates != null) {
-      console.log("got screenshot coordinates");
-      return captureScreenshot(request.screenshotCoordinates);
     }
   });
 
@@ -68,7 +64,10 @@
       console.log("cropping screenshot");
       cropBase64Image(screenshotData, screenshotCoordinates, function(croppedImage) {
         console.log("printing result of crop");
-        return console.log(croppedImage);
+        console.log(croppedImage);
+        return sendMessage({
+          'screenshotResult': croppedImage
+        });
       });
       return chrome.tabs.executeScript(null, {
         'file': 'setNoteBodyBackToNormal.js'
@@ -107,11 +106,16 @@
         'selectedLanguage': 'zh'
       });
     });
-    return $('#lang_ja').click(function() {
+    $('#lang_ja').click(function() {
       return sendMessage({
         'selectedLanguage': 'ja'
       });
     });
+    return setInterval(function() {
+      return sendMessage({
+        'log': 'are we still running?'
+      });
+    }, 1000);
   });
 
   /*

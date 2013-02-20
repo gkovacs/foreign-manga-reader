@@ -17,7 +17,7 @@ doOncePageLoads = () ->
 currentLanguage = 'zh'
 
 chrome.extension.onMessage.addListener((request, sender, sendResponse) ->
-  console.log(sender.tab)
+  #console.log(sender.tab)
   #if (request.greeting == "hello")
   #  sendResponse({farewell: "goodbye"})
   if request.selectedText? and request.selectedText.length > 0
@@ -37,9 +37,12 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) ->
         selectedText = selectedText[parenIndex+1..]
     $('#sentenceDisplay').html('')
     addSentence(selectedText, currentLanguage)
-  else if request.screenshotCoordinates?
-    console.log "got screenshot coordinates"
-    captureScreenshot(request.screenshotCoordinates)
+  #else if request.screenshotCoordinates?
+  #  console.log "got screenshot coordinates"
+  #  captureScreenshot(request.screenshotCoordinates)
+  #else if request.takeScreenshot
+  #  console.log 'taking screenshot'
+  #  chrome.tabs.executeScript(null, {'file': 'setNoteBodyWhite.js'})
 )
 
 captureScreenshot = (screenshotCoordinates) ->
@@ -50,6 +53,7 @@ captureScreenshot = (screenshotCoordinates) ->
     cropBase64Image(screenshotData, screenshotCoordinates, (croppedImage) ->
       console.log "printing result of crop"
       console.log croppedImage
+      sendMessage({'screenshotResult': croppedImage})
     )
     chrome.tabs.executeScript(null, {'file': 'setNoteBodyBackToNormal.js'})
   )
@@ -93,9 +97,12 @@ document.addEventListener('DOMContentLoaded', () ->
   $('#lang_ja').click(() ->
     sendMessage({'selectedLanguage': 'ja'})
   )
+  setInterval(() ->
+    sendMessage({'log': 'are we still running?'})
+  , 1000)
   #now.ready(() ->
   #  #doOncePageLoads()
-  #  chrome.tabs.executeScript(null, {'file': 'browserexec.js'})
+  #chrome.tabs.executeScript(null, {'file': 'browserexec.js'})
   #  #chrome.tabs.executeScript(null, {'file': 'setNoteBodyWhite.js'})
   #)
 )

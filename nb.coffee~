@@ -94,14 +94,18 @@ $(document).ready(
     )
     console.log('done executing in page')
   )
-  keyHandler = (e) ->
+  $(document).keyup((e) ->
     console.log e
-    if e.keyCode == 40 or e.keyCode == 39
+    focused = $(':focus')
+    if focused.length > 0 and focused[0].type in ['textarea', 'input', 'text']
+      return false
+    if e.keyCode == 40 #or e.keyCode == 39
       goToNextDialog()
-    else if e.keyCode == 38 or e.keyCode == 37
+      return false
+    else if e.keyCode == 38 #or e.keyCode == 37
       goToPreviousDialog()
+      return false
   )
-  $(document).keydown(keyHandler)
   #callOnceElementAvailable('.perspective', () ->
   #  $('.perspective').css('height', parseInt($('.perspective').css('height').split('px').join('')) - 150)
   #  $('.perspective').css('top', parseInt($('.perspective').css('top').split('px').join('')) + 150)
@@ -110,7 +114,7 @@ $(document).ready(
   #  $('.nb-viewport').css('height', parseInt($('.nb-viewport').css('height').split('px').join('')) - 150)
   #  $('.nb-viewport').css('top', parseInt($('.nb-viewport').css('top').split('px').join('')) + 150)
   #)
-  root.serverLocation = 'http://geza.csail.mit.edu:1357'
+  root.serverLocation = 'http://localhost:1357'
   popupSentenceDisplay = $('''<div id="popupSentenceDisplay">dialog content is here</div>''')
   popupSentenceDisplay.dialog({
     'autoOpen': false,
@@ -126,7 +130,7 @@ $(document).ready(
       $(this).css("maxHeight", 150)
   }).css('max-height', '150px')
   callOnceElementAvailable('.location-shortbody-text', () ->
-    for lang in ['zh', 'ja']
+    for lang in ['zh', 'ja', 'fr', 'de']
       console.log lang
       console.log $('.location-shortbody-text').text()
       if $('.location-shortbody-text').text().indexOf('lang=' + lang) != -1
@@ -140,6 +144,11 @@ root.selectedLanguage = 'zh'
 chrome.extension.onMessage.addListener((request, sender, sendResponse) ->
   if request['selectedLanguage']?
     root.selectedLanguage = request['selectedLanguage']
+  if request['screenshotResult']?
+    console.log 'screenshot result'
+    console.log request['screenshotResult']
+  if request['log']?
+    console.log request['log']
   console.log request
 )
 
@@ -149,7 +158,7 @@ haveNewText = () ->
   $('#popupSentenceDisplay').text('')
   $('.ui-dialog').css('z-index', 99)
   $('#popupSentenceDisplay').css('max-height', '500px')
-  root.addSentence(root.currentText, root.selectedLanguage, $('#popupSentenceDisplay'))
+  root.addSentence(root.currentText, root.selectedLanguage, $('#popupSentenceDisplay'), true)
 
 trimSelectedText = (selectedText) ->
   if selectedText.indexOf('http://geza') != -1
@@ -162,8 +171,85 @@ trimSelectedText = (selectedText) ->
       selectedText = selectedText[parenIndex+1..]
   return selectedText
 
+getOCR = (imagedata, callback) ->
+  dataPrefix = 'data:image/png;base64,'
+  if imagedata.indexOf(dataPrefix) == 0
+    imagedata = imagedata[dataPrefix.length..]
+  $.get(root.serverLocation + '/getOCR?data=' + imagedata, callback)
+
+cropBase64Image = (imgData, screenshotCoordinates, callback) ->
+  canvas = document.createElement('canvas')
+  canvas.width = screenshotCoordinates.width
+  canvas.height = screenshotCoordinates.height
+  context = canvas.getContext('2d')
+  imageObj = new Image()
+  imageObj.width = screenshotCoordinates.width
+  imageObj.heigth = screenshotCoordinates.height
+  imageObj.onload = () ->
+    context.drawImage(
+      imageObj,
+      screenshotCoordinates.left,
+      screenshotCoordinates.top,
+      screenshotCoordinates.width,
+      screenshotCoordinates.height,
+      0,
+      0,
+      screenshotCoordinates.width,
+      screenshotCoordinates.height
+    )
+    callback(context.canvas.toDataURL("image/png"))
+  imageObj.src = imgData
+
+prevScreenshotCoordinates = null
+
 setInterval(() ->
-  selectedText = $('.note-body').text()
+  if not $('.ui-drawable-selection')? or not $('.ui-drawable-selection').offset or not $('.ui-drawable-selection').offset()?
+    return
+  #console.log 'something selected'
+  screenshotCoordinates = {
+    'left': $('.ui-drawable-selection').offset().left,
+    'top': $('.ui-drawable-selection').offset().top,
+    'width': $('.ui-drawable-selection').width(),
+    'height': $('.ui-drawable-selection').height()
+  }
+  if _.isEqual(screenshotCoordinates, prevScreenshotCoordinates)
+    return
+  prevScreenshotCoordinates = screenshotCoordinates
+  console.log 'taking screenshot'
+  console.log screenshotCoordinates
+  origOpacity = $('.ui-drawable-selection').css('opacity')
+  $('.ui-drawable-selection').css('opacity', 0.0)
+  chrome.extension.sendMessage({'takeScreenshot': true}, (screenshotData) ->
+    $('.ui-drawable-selection').css('opacity', origOpacity)
+    console.log 'screenshot data!'
+    cropBase64Image(screenshotData, screenshotCoordinates, (croppedImage) ->
+      console.log "printing result of crop"
+      console.log croppedImage
+      getOCR(croppedImage, (ocrText) ->
+        console.log ocrText
+        if $('textarea').text() == ''
+          $('textarea').text(ocrText)
+      )
+    )
+  )
+  #chrome.tabs.captureVisibleTab(null, {'format': 'png'}, (screenshotData) ->
+  #  console.log 'screenshot captured'
+  #  cropBase64Image(screenshotData, screenshotCoordinates, (croppedImage) ->
+  #    console.log "printing result of crop"
+  #    console.log croppedImage
+  #    #sendMessage({'screenshotResult': croppedImage})
+  #  )
+  #)
+  #chrome.extension.sendMessage({'takeScreenshot': true})
+, 3000)
+
+setInterval(() ->
+  selectedText = $('.note-body').html()
+  if not selectedText?
+    return
+  selectedText = selectedText.split('<br>')
+  selectedText = (line for line in selectedText when line.indexOf('lang=') != 0).join(' ')
+  selectedText = $('<span>').html(selectedText).text()
   selectedText = trimSelectedText(selectedText)
   if selectedText != root.currentText
     root.currentText = selectedText
