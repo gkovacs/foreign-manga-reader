@@ -2,6 +2,17 @@ root = exports ? this
 
 root.currentText = ''
 
+positionPopup = root.positionPopup = () ->
+  selectedBubble = $('.selection.selected')
+  if not selectedBubble? or selectedBubble.length == 0
+    return
+  popupDialog = $('.ui-dialog')
+  if not popupDialog? or popupDialog.length == 0
+    return
+  console.log 'setting offset!'
+  popupDialog.offset({'left': selectedBubble.offset().left, 'top': selectedBubble.offset().top})
+
+
 callOnceElementAvailable = (element, callback) ->
   if $(element).length > 0
     callback()
@@ -73,6 +84,7 @@ goToPreviousDialog = () ->
 $(document).ready(
   assignVariable('callOnceObjectAvailable', callOnceObjectAvailable)
   assignVariable('getLineNumFromText', getLineNumFromText)
+  assignVariable('positionPopup', positionPopup)
   executeInPage(() ->
     console.log('executing in page!')
     console.log(window)
@@ -106,6 +118,12 @@ $(document).ready(
       goToPreviousDialog()
       return false
   )
+  callOnceElementAvailable('.active-view', () ->
+    $('.active-view').scroll(() ->
+      #console.log 'scrolling!'
+      positionPopup()
+    )
+  )
   #callOnceElementAvailable('.perspective', () ->
   #  $('.perspective').css('height', parseInt($('.perspective').css('height').split('px').join('')) - 150)
   #  $('.perspective').css('top', parseInt($('.perspective').css('top').split('px').join('')) + 150)
@@ -114,7 +132,7 @@ $(document).ready(
   #  $('.nb-viewport').css('height', parseInt($('.nb-viewport').css('height').split('px').join('')) - 150)
   #  $('.nb-viewport').css('top', parseInt($('.nb-viewport').css('top').split('px').join('')) + 150)
   #)
-  root.serverLocation = 'http://localhost:1357'
+  root.serverLocation = 'http://geza.csail.mit.edu:1357'
   popupSentenceDisplay = $('''<div id="popupSentenceDisplay">dialog content is here</div>''')
   popupSentenceDisplay.dialog({
     'autoOpen': false,
@@ -122,13 +140,17 @@ $(document).ready(
     'title': '',
     #'show': 'clip',
     #'hide': 'clip',
-    'position': ['right', 'top'],
+    'position': ['left', 'top'],
     'zIndex': 99,
-    'width': '100%',
-    'maxHeight': '150px',
+    'width': 'auto',
+    'height': 'auto',
+    #'float': 'left',
+    #'width': '100%',
+    'maxHeight': '100px',
+    'max-height': '100px',
     'create': () ->
-      $(this).css("maxHeight", 150)
-  }).css('max-height', '150px')
+      $(this).css("maxHeight", '100px').css('max-height', '100px')
+  }).css('max-height', '100px').css('maxHeight', '100px')
   callOnceElementAvailable('.location-shortbody-text', () ->
     for lang in ['zh', 'ja', 'fr', 'de']
       console.log lang
@@ -156,9 +178,17 @@ haveNewText = () ->
   console.log root.currentText
   $('#popupSentenceDisplay').dialog('open')
   $('#popupSentenceDisplay').text('')
+  $('#popupSentenceDisplay').css('width', 'auto')
+  $('#popupSentenceDisplay').css('height', 'auto')
   $('.ui-dialog').css('z-index', 99)
+  $('.ui-dialog').css('width', 'auto')
+  $('.ui-dialog').css('height', 'auto')
+  #selectedOffset = $('.selection.selected').offset()
+  #if selectedOffset?
+  #  $('.ui-dialog').offset({'left': selectedOffset.left, 'top': selectedOffset.top})
   $('#popupSentenceDisplay').css('max-height', '500px')
   root.addSentence(root.currentText, root.selectedLanguage, $('#popupSentenceDisplay'), true)
+  positionPopup()
 
 trimSelectedText = (selectedText) ->
   if selectedText.indexOf('http://geza') != -1
@@ -244,6 +274,10 @@ setInterval(() ->
   #chrome.extension.sendMessage({'takeScreenshot': true})
 , 3000)
 
+#setInterval(() ->
+#  positionPopup()
+#, 300)
+
 setInterval(() ->
   selectedText = $('.note-body').html()
   if not selectedText?
@@ -255,8 +289,5 @@ setInterval(() ->
   if selectedText != root.currentText
     root.currentText = selectedText
     haveNewText()
-    $('div.selection.selected').click(() ->
-      $('#popupSentenceDisplay').dialog('open')
-    )
 , 300)
 

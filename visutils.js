@@ -19,7 +19,7 @@
       })()).join('');
     };
     $.fn.borderStuff = function(depth, maxdepth, color) {
-      var margin, padding, width;
+      var fontSize, lang, margin, padding, width;
       width = 3;
       /*
           depth = $(this).parents().attr('depth')
@@ -30,19 +30,25 @@
             depth = 0
       */
 
-      padding = 15;
+      padding = 8;
+      fontSize = 18;
+      lang = this.attr('foreignLang');
+      if (lang === 'zh' || lang === 'ja') fontSize = 32;
       margin = 0;
       if (color === 'white') {
-        margin = (maxdepth - depth + 1) * 15 + (maxdepth - depth);
+        margin = (maxdepth - depth + 1) * padding + (maxdepth - depth);
       }
       if (!(color != null)) color = depthToColor(depth);
-      return this.addClass('bordered').css('position', 'relative').css('padding', padding + 'px').css('font-size', '32px').attr('color', color).css('background-color', color).css('border-width', 1).css('border-style', 'solid').css('float', 'left').attr('depth', depth).css('border-color', 'black').css('border-radius', '10px').css('margin-top', margin).css('margin-bottom', margin);
+      this.addClass('bordered').css('position', 'relative').css('padding', padding + 'px').css('font-size', fontSize).attr('color', color).css('background-color', color).css('border-width', 1).css('border-style', 'solid').css('float', 'left').attr('depth', depth).css('border-color', 'black').css('border-radius', '10px').css('margin-top', margin).css('margin-bottom', margin);
+      if (this.attr('id').indexOf('_') === -1) {
+        this.css('margin-top', $('#H' + this.attr('id')).height());
+      }
+      return this;
     };
     $.fn.showAsSibling = function(color) {
       var setWidth, siblingToShow,
         _this = this;
-      if (!(color != null)) color = 'lightblue';
-      this.css('background-color', color);
+      if (color != null) this.css('background-color', color);
       siblingToShow = $('#H' + this.attr('id'));
       siblingToShow.show();
       this.addClass('hovered');
@@ -56,9 +62,10 @@
         return siblingToShow.css('top', top);
       };
       setWidth();
-      return siblingToShow.mouseover(function() {
+      siblingToShow.mouseover(function() {
         return false;
       });
+      return this;
     };
     return $.fn.hoverId = function() {
       var idNum, shortTranslation, shortTranslationDiv, text, textAsHtml, x, _i, _len, _ref,
@@ -131,7 +138,7 @@
         return false;
       });
       this.mouseleave(function() {
-        var _j, _len1, _ref1;
+        var myId, rootId, _j, _len1, _ref1;
         _ref1 = $('.hovered');
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
           x = _ref1[_j];
@@ -139,7 +146,12 @@
         }
         $('.hovered').removeClass('hovered');
         $('.Hovertips').hide();
-        return _this.css('background-color', _this.attr('color'));
+        myId = _this.attr('id');
+        rootId = myId;
+        if (myId.indexOf('_') !== -1) rootId = myId.slice(0, myId.indexOf('_'));
+        console.log(rootId);
+        _this.css('background-color', _this.attr('color'));
+        return $('#' + rootId).showAsSibling();
       });
       return this;
     };
@@ -247,7 +259,7 @@
   };
 
   makeDivs = function(subHierarchy, lang, translations, maxdepth, depth) {
-    var basediv, child, contentHierarchy, foreignText, id, translation, _i, _len, _results;
+    var basediv, child, contentHierarchy, foreignText, id, translation, _i, _len;
     if (depth == null) depth = 1;
     basediv = $('<div>');
     id = subHierarchy.id;
@@ -256,6 +268,7 @@
     basediv.addClass('hovertext').addClass('textRegion');
     foreignText = hierarchyWithIdToTerminals(subHierarchy, lang);
     basediv.attr('foreignText', foreignText);
+    basediv.attr('foreignLang', lang);
     translation = translations[foreignText];
     basediv.attr('translation', translation);
     basediv.attr('depth', depth);
@@ -282,19 +295,18 @@
     initializeHover(basediv);
     if (contentHierarchy.length > 1) {
       basediv.borderStuff(depth, maxdepth);
-      _results = [];
       for (_i = 0, _len = contentHierarchy.length; _i < _len; _i++) {
         child = contentHierarchy[_i];
-        _results.push(basediv.append(makeDivs(child, lang, translations, maxdepth, depth + 1)));
+        basediv.append(makeDivs(child, lang, translations, maxdepth, depth + 1));
       }
-      return _results;
     } else if (contentHierarchy.length === 1) {
       if (typeof contentHierarchy[0] === typeof '') {
-        return basediv.borderStuff(depth, maxdepth, 'white').text(contentHierarchy[0]).hoverId();
+        basediv.borderStuff(depth, maxdepth, 'white').text(contentHierarchy[0]).hoverId();
       } else {
-        return basediv.borderStuff(depth, maxdepth, 'white').text(contentHierarchy[0]).hoverId();
+        basediv.borderStuff(depth, maxdepth, 'white').text(contentHierarchy[0]).hoverId();
       }
     }
+    return basediv;
   };
 
   addIdsToHierarchy = function(hierarchy, myId) {
@@ -326,7 +338,7 @@
   };
 
   renderSentence = function(sentence, ref_hierarchy, translations, lang, renderTarget) {
-    var idnum, ref_hierarchy_with_ids;
+    var currentTopMargin, idnum, ref_hierarchy_with_ids, rootBaseDiv;
     console.log(ref_hierarchy);
     console.log(translations);
     idnum = 0;
@@ -335,7 +347,13 @@
     }
     ref_hierarchy_with_ids = addIdsToHierarchy(ref_hierarchy, 'R' + idnum);
     console.log(ref_hierarchy_with_ids);
-    return renderTarget.append(makeDivs(ref_hierarchy_with_ids, lang, translations, getMaxDepth(ref_hierarchy_with_ids) - 1)).append('<br>');
+    rootBaseDiv = makeDivs(ref_hierarchy_with_ids, lang, translations, getMaxDepth(ref_hierarchy_with_ids) - 1);
+    renderTarget.append(rootBaseDiv).append('<br>');
+    rootBaseDiv.showAsSibling();
+    currentTopMargin = 0;
+    return setTimeout(function() {
+      return rootBaseDiv.css('margin-top', currentTopMargin + $('#HR' + idnum).height());
+    }, 10);
   };
 
   addSentence = root.addSentence = function(sentence, lang, renderTarget, clearExisting) {
@@ -362,16 +380,19 @@
 
   updateTranslation = function(id, translation) {
     var basediv, fullTranslation, parentId, parentdiv;
+    console.log('updateTranslation for:' + id);
     basediv = $('#' + id);
     fullTranslation = basediv.attr('translation').split('\n');
     fullTranslation[0] = translation;
     basediv.attr('translation', fullTranslation.join('\n'));
     basediv.hoverId();
-    initializeHover(basediv);
-    parentId = id.split('_').slice(0, -1).join('_');
-    parentdiv = $('#' + parentId);
-    initializeHover(parentdiv);
-    return basediv.mouseover();
+    $('#H' + id).text(translation);
+    if (id.indexOf('_') !== -1) {
+      parentId = id.split('_').slice(0, -1).join('_');
+      return parentdiv = $('#' + parentId);
+    } else {
+      return basediv.css('margin-top', $('#H' + id).height());
+    }
   };
 
   openTranslationPopup = root.openTranslationPopup = function(sentenceToTranslate, translation, lang, id) {
