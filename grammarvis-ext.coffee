@@ -93,9 +93,17 @@ document.addEventListener('DOMContentLoaded', () ->
   $('#lang_zh').click(() ->
     sendMessage({'selectedLanguage': 'zh'})
   )
-  
   $('#lang_ja').click(() ->
     sendMessage({'selectedLanguage': 'ja'})
+  )
+  $('#lang_de').click(() ->
+    sendMessage({'selectedLanguage': 'de'})
+  )
+  $('#lang_fr').click(() ->
+    sendMessage({'selectedLanguage': 'fr'})
+  )
+  $('#disable_popup').click(() ->
+    sendMessage({'closePopup': 'true'})
   )
   setInterval(() ->
     sendMessage({'log': 'are we still running?'})

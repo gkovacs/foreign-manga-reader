@@ -111,6 +111,21 @@
         'selectedLanguage': 'ja'
       });
     });
+    $('#lang_de').click(function() {
+      return sendMessage({
+        'selectedLanguage': 'de'
+      });
+    });
+    $('#lang_fr').click(function() {
+      return sendMessage({
+        'selectedLanguage': 'fr'
+      });
+    });
+    $('#disable_popup').click(function() {
+      return sendMessage({
+        'closePopup': 'true'
+      });
+    });
     return setInterval(function() {
       return sendMessage({
         'log': 'are we still running?'

@@ -37,12 +37,12 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) ->
         selectedText = selectedText[parenIndex+1..]
     $('#sentenceDisplay').html('')
     addSentence(selectedText, currentLanguage)
-  else if request.screenshotCoordinates?
-    console.log "got screenshot coordinates"
-    captureScreenshot(request.screenshotCoordinates)
-  else if request.takeScreenshot
-    console.log 'taking screenshot'
-    chrome.tabs.executeScript(null, {'file': 'setNoteBodyWhite.js'})
+  #else if request.screenshotCoordinates?
+  #  console.log "got screenshot coordinates"
+  #  captureScreenshot(request.screenshotCoordinates)
+  #else if request.takeScreenshot
+  #  console.log 'taking screenshot'
+  #  chrome.tabs.executeScript(null, {'file': 'setNoteBodyWhite.js'})
 )
 
 captureScreenshot = (screenshotCoordinates) ->
@@ -93,8 +93,16 @@ document.addEventListener('DOMContentLoaded', () ->
   $('#lang_zh').click(() ->
     sendMessage({'selectedLanguage': 'zh'})
   )
-  
   $('#lang_ja').click(() ->
+    sendMessage({'selectedLanguage': 'ja'})
+  )
+  $('#lang_de').click(() ->
+    sendMessage({'selectedLanguage': 'de'})
+  )
+  $('#lang_fr').click(() ->
+    sendMessage({'selectedLanguage': 'fr'})
+  )
+  $('#disable_popup').click(() ->
     sendMessage({'selectedLanguage': 'ja'})
   )
   setInterval(() ->

@@ -12,43 +12,6 @@ positionPopup = root.positionPopup = () ->
   console.log 'setting offset!'
   popupDialog.offset({'left': selectedBubble.offset().left, 'top': selectedBubble.offset().top})
 
-
-callOnceElementAvailable = (element, callback) ->
-  if $(element).length > 0
-    callback()
-  else
-    setTimeout(() ->
-      callOnceElementAvailable(element, callback)
-    , 300)
-
-myGlobalCode = () ->
-  #Object.defineProperty(window, 'smilies', {value: true})
-  #console.log('foobar!')
-  
-
-callOnceObjectAvailable = (objectname, callback) ->
-  if window[objectname]?
-    callback()
-  else
-    setTimeout(() ->
-      callOnceObjectAvailable(objectname, callback)
-    , 300)
-
-executeInPage = (myCode) ->
-  #console.log $('<script>').text('(' + myCode + ')();')
-  #$('head').append $('<script>').text('(' + myCode + ')();')
-  scriptTag = document.createElement('script')
-  scriptTag.type = 'text/javascript'
-  scriptTag.innerHTML = '(' + myCode + ')();'
-  document.documentElement.appendChild(scriptTag)
-
-assignVariable = (variableName, codeValue) ->
-  codeValueAsText = codeValue.toString()
-  scriptTag = document.createElement('script')
-  scriptTag.type = 'text/javascript'
-  scriptTag.innerHTML = variableName + ' = ' + codeValueAsText + ';'
-  document.documentElement.appendChild(scriptTag)
-
 getLineNumFromText = (selectedText) ->
   parenIndexes = (selectedText.indexOf(x) for x in ')）' when selectedText.indexOf(x) != -1)
   if parenIndexes.length > 0
@@ -82,10 +45,10 @@ goToPreviousDialog = () ->
     goToDialog(currentDialog - 1)
 
 $(document).ready(
-  assignVariable('callOnceObjectAvailable', callOnceObjectAvailable)
-  assignVariable('getLineNumFromText', getLineNumFromText)
-  assignVariable('positionPopup', positionPopup)
-  executeInPage(() ->
+  root.assignVariable('callOnceObjectAvailable', root.callOnceObjectAvailable)
+  root.assignVariable('getLineNumFromText', getLineNumFromText)
+  root.assignVariable('positionPopup', positionPopup)
+  root.executeInPage(() ->
     console.log('executing in page!')
     console.log(window)
     console.log(window['NB$'])
@@ -118,7 +81,7 @@ $(document).ready(
       goToPreviousDialog()
       return false
   )
-  callOnceElementAvailable('.active-view', () ->
+  root.callOnceElementAvailable('.active-view', () ->
     $('.active-view').scroll(() ->
       #console.log 'scrolling!'
       positionPopup()
@@ -132,7 +95,7 @@ $(document).ready(
   #  $('.nb-viewport').css('height', parseInt($('.nb-viewport').css('height').split('px').join('')) - 150)
   #  $('.nb-viewport').css('top', parseInt($('.nb-viewport').css('top').split('px').join('')) + 150)
   #)
-  root.serverLocation = 'http://localhost:1357'
+  root.serverLocation = 'http://geza.csail.mit.edu:1357'
   popupSentenceDisplay = $('''<div id="popupSentenceDisplay">dialog content is here</div>''')
   popupSentenceDisplay.dialog({
     'autoOpen': false,
@@ -151,7 +114,7 @@ $(document).ready(
     'create': () ->
       $(this).css("maxHeight", '100px').css('max-height', '100px')
   }).css('max-height', '100px').css('maxHeight', '100px')
-  callOnceElementAvailable('.location-shortbody-text', () ->
+  root.callOnceElementAvailable('.location-shortbody-text', () ->
     for lang in ['zh', 'ja', 'fr', 'de']
       console.log lang
       console.log $('.location-shortbody-text').text()
@@ -180,6 +143,10 @@ haveNewText = () ->
   $('#popupSentenceDisplay').text('')
   $('#popupSentenceDisplay').css('width', 'auto')
   $('#popupSentenceDisplay').css('height', 'auto')
+  $('.selection.selected').unbind('click', haveNewText)
+  $('.selection.selected').bind('click', haveNewText)
+  $('.location-lens.selected').unbind('click', haveNewText)
+  $('.location-lens.selected').bind('click', haveNewText)
   $('.ui-dialog').css('z-index', 99)
   $('.ui-dialog').css('width', 'auto')
   $('.ui-dialog').css('height', 'auto')
@@ -240,7 +207,7 @@ setInterval(() ->
     'left': $('.ui-drawable-selection').offset().left,
     'top': $('.ui-drawable-selection').offset().top,
     'width': $('.ui-drawable-selection').width(),
-    'height': $('.ui-drawable-selection').height()
+    'height': $('.ui-drawable-selection').height(),
   }
   if _.isEqual(screenshotCoordinates, prevScreenshotCoordinates)
     return

@@ -12,43 +12,6 @@ positionPopup = root.positionPopup = () ->
   console.log 'setting offset!'
   popupDialog.offset({'left': selectedBubble.offset().left, 'top': selectedBubble.offset().top})
 
-
-callOnceElementAvailable = (element, callback) ->
-  if $(element).length > 0
-    callback()
-  else
-    setTimeout(() ->
-      callOnceElementAvailable(element, callback)
-    , 300)
-
-myGlobalCode = () ->
-  #Object.defineProperty(window, 'smilies', {value: true})
-  #console.log('foobar!')
-  
-
-callOnceObjectAvailable = (objectname, callback) ->
-  if window[objectname]?
-    callback()
-  else
-    setTimeout(() ->
-      callOnceObjectAvailable(objectname, callback)
-    , 300)
-
-executeInPage = (myCode) ->
-  #console.log $('<script>').text('(' + myCode + ')();')
-  #$('head').append $('<script>').text('(' + myCode + ')();')
-  scriptTag = document.createElement('script')
-  scriptTag.type = 'text/javascript'
-  scriptTag.innerHTML = '(' + myCode + ')();'
-  document.documentElement.appendChild(scriptTag)
-
-assignVariable = (variableName, codeValue) ->
-  codeValueAsText = codeValue.toString()
-  scriptTag = document.createElement('script')
-  scriptTag.type = 'text/javascript'
-  scriptTag.innerHTML = variableName + ' = ' + codeValueAsText + ';'
-  document.documentElement.appendChild(scriptTag)
-
 getLineNumFromText = (selectedText) ->
   parenIndexes = (selectedText.indexOf(x) for x in ')）' when selectedText.indexOf(x) != -1)
   if parenIndexes.length > 0
@@ -180,6 +143,10 @@ haveNewText = () ->
   $('#popupSentenceDisplay').text('')
   $('#popupSentenceDisplay').css('width', 'auto')
   $('#popupSentenceDisplay').css('height', 'auto')
+  $('.selection.selected').unbind('click', haveNewText)
+  $('.selection.selected').bind('click', haveNewText)
+  $('.location-lens.selected').unbind('click', haveNewText)
+  $('.location-lens.selected').bind('click', haveNewText)
   $('.ui-dialog').css('z-index', 99)
   $('.ui-dialog').css('width', 'auto')
   $('.ui-dialog').css('height', 'auto')
@@ -240,7 +207,7 @@ setInterval(() ->
     'left': $('.ui-drawable-selection').offset().left,
     'top': $('.ui-drawable-selection').offset().top,
     'width': $('.ui-drawable-selection').width(),
-    'height': $('.ui-drawable-selection').height()
+    'height': $('.ui-drawable-selection').height(),
   }
   if _.isEqual(screenshotCoordinates, prevScreenshotCoordinates)
     return
