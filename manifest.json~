@@ -23,14 +23,14 @@
   },
   "content_scripts": [ {
     "all_frames": true,
-    "js": [ "nb.js" ],
-    "css": ["css/ui-lightness/jquery-ui-1.10.0.custom.css"],
-    "matches": [ "http://nb.mit.edu/*", "https://nb.mit.edu/*" ]
-  }, {
-    "all_frames": true,
     "js": [ "underscore.js", "js/jquery-1.9.0.js", "js/jquery-ui-1.10.0.custom.js", "async.js", "visutils.js", "scriptUtils.js", "glossSelection.js" ],
     "css": ["css/ui-lightness/jquery-ui-1.10.0.custom.css"],
     "matches": [ "http://*/*", "https://*/*" ]
+  }, {
+    "all_frames": true,
+    "js": [ "nb.js" ],
+    "css": ["css/ui-lightness/jquery-ui-1.10.0.custom.css"],
+    "matches": [ "http://nb.mit.edu/*", "https://nb.mit.edu/*" ]
   } ]
 }
 
