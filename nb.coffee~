@@ -44,11 +44,23 @@ goToPreviousDialog = () ->
   else
     goToDialog(currentDialog - 1)
 
+getRawTextForBubble = (bubble_id) ->
+  if isNaN(parseInt(bubble_id))
+    bubble_id = bubble_id.attr('id_item')
+  return $('.location-lens[id_item=' + bubble_id + ']').find('.location-shortbody').text()
+
+getTextForBubble = (bubble_id) ->
+  rawtext = getRawTextForBubble(bubble_id)
+  return trimSelectedText(rawtext)
+
 $(document).ready(
-  root.assignVariable('callOnceObjectAvailable', root.callOnceObjectAvailable)
-  root.assignVariable('getLineNumFromText', getLineNumFromText)
-  root.assignVariable('positionPopup', positionPopup)
-  root.executeInPage(() ->
+  assignVariable('$', 'jQuery')
+  assignVariable('callOnceObjectAvailable', callOnceObjectAvailable)
+  assignVariable('getLineNumFromText', getLineNumFromText)
+  assignVariable('positionPopup', positionPopup)
+  #assignVariable('synthesizeSpeech', synthesizeSpeech)
+  #assignVariable('getTextForBubble', exposeFunction('getTextForBubble', (textOutput) -> console.log(textOutput)))
+  executeInPage(() ->
     console.log('executing in page!')
     console.log(window)
     console.log(window['NB$'])
@@ -81,7 +93,7 @@ $(document).ready(
       goToPreviousDialog()
       return false
   )
-  root.callOnceElementAvailable('.active-view', () ->
+  callOnceElementAvailable('.active-view', () ->
     $('.active-view').scroll(() ->
       #console.log 'scrolling!'
       positionPopup()
@@ -113,8 +125,12 @@ $(document).ready(
     'max-height': '100px',
     'create': () ->
       $(this).css("maxHeight", '100px').css('max-height', '100px')
+    'close': () ->
+      audioTag = $('audio')[0]
+      if audioTag?
+        audioTag.stop()
   }).css('max-height', '100px').css('maxHeight', '100px')
-  root.callOnceElementAvailable('.location-shortbody-text', () ->
+  callOnceElementAvailable('.location-shortbody-text', () ->
     for lang in ['zh', 'ja', 'fr', 'de']
       console.log lang
       console.log $('.location-shortbody-text').text()
@@ -132,10 +148,20 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) ->
   if request['screenshotResult']?
     console.log 'screenshot result'
     console.log request['screenshotResult']
+  if request['executeHere']? and request['executeHere'].function? and request['executeHere'].arglist?
+    root[request['executeHere'].function].apply(request['executeHere'].arglist)
   if request['log']?
     console.log request['log']
   console.log request
 )
+
+synthesizeSpeech = root.synthesizeSpeech = (sentence, lang) ->
+  audioTag = $('audio')[0]
+  if not audioTag
+    $('body').append($('<audio>').attr('autoplay', true).attr('loop', true))
+    audioTag = $('audio')[0]
+  audioTag.src = 'http://geza.csail.mit.edu:1357/synthesize?sentence=' + sentence + '&lang=' + lang
+  audioTag.play()
 
 haveNewText = () ->
   console.log root.currentText
@@ -155,6 +181,7 @@ haveNewText = () ->
   #  $('.ui-dialog').offset({'left': selectedOffset.left, 'top': selectedOffset.top})
   $('#popupSentenceDisplay').css('max-height', '500px')
   root.addSentence(root.currentText, root.selectedLanguage, $('#popupSentenceDisplay'), true)
+  synthesizeSpeech(root.currentText, root.selectedLanguage)
   positionPopup()
 
 trimSelectedText = (selectedText) ->
@@ -200,6 +227,8 @@ cropBase64Image = (imgData, screenshotCoordinates, callback) ->
 prevScreenshotCoordinates = null
 
 setInterval(() ->
+  if root.selectedLanguage not in ['zh', 'ja']
+    return
   if not $('.ui-drawable-selection')? or not $('.ui-drawable-selection').offset or not $('.ui-drawable-selection').offset()?
     return
   #console.log 'something selected'
@@ -224,8 +253,16 @@ setInterval(() ->
         console.log croppedImage
         getOCR(croppedImage, (ocrText) ->
           console.log ocrText
+          noteBodyNum = 0
+          noteBodySelector = $('.note-body')
+          if noteBodySelector? and noteBodySelector.length > 0
+            noteBodyText = noteBodySelector.text()
+            noteBodyNum = getLineNumFromText(noteBodyText)
+          ocrPrefix = ''
+          if not isNaN(noteBodyNum)
+            ocrPrefix = (parseInt(noteBodyNum) + 1) + ') '
           if $('textarea').text() == ''
-            $('textarea').text(ocrText)
+            $('textarea').text(ocrPrefix + ocrText)
         )
       )
     )
