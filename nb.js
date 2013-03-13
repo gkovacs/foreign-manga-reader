@@ -73,18 +73,53 @@
     }
   };
 
+  trimSelectedText = function(selectedText) {
+    var lineNum, parenIndex, parenIndexes, x;
+    if (selectedText.indexOf('http://geza') !== -1) {
+      selectedText = selectedText.slice(0, selectedText.indexOf('http://geza'));
+    }
+    parenIndexes = (function() {
+      var _i, _len, _ref, _results;
+      _ref = ')）';
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        x = _ref[_i];
+        if (selectedText.indexOf(x) !== -1) _results.push(selectedText.indexOf(x));
+      }
+      return _results;
+    })();
+    if (parenIndexes.length > 0) {
+      parenIndex = Math.min.apply(Math, parenIndexes);
+      lineNum = selectedText.slice(0, parenIndex).trim();
+      if (!isNaN(lineNum)) selectedText = selectedText.slice(parenIndex + 1);
+    }
+    return selectedText.trim();
+  };
+
   getRawTextForBubble = function(bubble_id) {
     if (isNaN(parseInt(bubble_id))) bubble_id = bubble_id.attr('id_item');
     return $('.location-lens[id_item=' + bubble_id + ']').find('.location-shortbody').text();
   };
 
   getTextForBubble = function(bubble_id) {
-    var rawtext;
+    var line, rawtext;
     rawtext = getRawTextForBubble(bubble_id);
+    rawtext = ((function() {
+      var _i, _len, _ref, _results;
+      _ref = rawtext.split('\n');
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        line = _ref[_i];
+        if (line.indexOf('lang=') !== 0 && line.indexOf('showenglish') !== 0) {
+          _results.push(line);
+        }
+      }
+      return _results;
+    })()).join(' ');
     return trimSelectedText(rawtext);
   };
 
-  $(document).ready(assignVariable('$', 'jQuery'), assignVariable('callOnceObjectAvailable', callOnceObjectAvailable), assignVariable('getLineNumFromText', getLineNumFromText), assignVariable('positionPopup', positionPopup), executeInPage(function() {
+  $(document).ready(assignVariable('$', 'jQuery'), assignVariable('callOnceObjectAvailable', callOnceObjectAvailable), assignVariable('getLineNumFromText', getLineNumFromText), assignVariable('positionPopup', positionPopup), assignVariable('getTextForBubble', getTextForBubble), assignVariable('getRawTextForBubble', getRawTextForBubble), assignVariable('trimSelectedText', trimSelectedText), executeInPage(function() {
     console.log('executing in page!');
     console.log(window);
     console.log(window['NB$']);
@@ -211,29 +246,6 @@
     return positionPopup();
   };
 
-  trimSelectedText = function(selectedText) {
-    var lineNum, parenIndex, parenIndexes, x;
-    if (selectedText.indexOf('http://geza') !== -1) {
-      selectedText = selectedText.slice(0, selectedText.indexOf('http://geza'));
-    }
-    parenIndexes = (function() {
-      var _i, _len, _ref, _results;
-      _ref = ')）';
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        x = _ref[_i];
-        if (selectedText.indexOf(x) !== -1) _results.push(selectedText.indexOf(x));
-      }
-      return _results;
-    })();
-    if (parenIndexes.length > 0) {
-      parenIndex = Math.min.apply(Math, parenIndexes);
-      lineNum = selectedText.slice(0, parenIndex).trim();
-      if (!isNaN(lineNum)) selectedText = selectedText.slice(parenIndex + 1);
-    }
-    return selectedText;
-  };
-
   getOCR = function(imagedata, callback) {
     var dataPrefix;
     dataPrefix = 'data:image/png;base64,';
@@ -319,7 +331,9 @@
       _results = [];
       for (_i = 0, _len = selectedText.length; _i < _len; _i++) {
         line = selectedText[_i];
-        if (line.indexOf('lang=') !== 0) _results.push(line);
+        if (line.indexOf('lang=') !== 0 && line.indexOf('showenglish') !== 0) {
+          _results.push(line);
+        }
       }
       return _results;
     })()).join(' ');

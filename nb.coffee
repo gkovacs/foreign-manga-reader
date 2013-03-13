@@ -44,6 +44,17 @@ goToPreviousDialog = () ->
   else
     goToDialog(currentDialog - 1)
 
+trimSelectedText = (selectedText) ->
+  if selectedText.indexOf('http://geza') != -1
+    selectedText = selectedText[...selectedText.indexOf('http://geza')]
+  parenIndexes = (selectedText.indexOf(x) for x in ')）' when selectedText.indexOf(x) != -1)
+  if parenIndexes.length > 0
+    parenIndex = Math.min.apply(Math, parenIndexes)
+    lineNum = selectedText[...parenIndex].trim()
+    if not isNaN(lineNum)
+      selectedText = selectedText[parenIndex+1..]
+  return selectedText.trim()
+
 getRawTextForBubble = (bubble_id) ->
   if isNaN(parseInt(bubble_id))
     bubble_id = bubble_id.attr('id_item')
@@ -51,6 +62,7 @@ getRawTextForBubble = (bubble_id) ->
 
 getTextForBubble = (bubble_id) ->
   rawtext = getRawTextForBubble(bubble_id)
+  rawtext = (line for line in rawtext.split('\n') when line.indexOf('lang=') != 0 and line.indexOf('showenglish') != 0).join(' ')
   return trimSelectedText(rawtext)
 
 $(document).ready(
@@ -58,6 +70,9 @@ $(document).ready(
   assignVariable('callOnceObjectAvailable', callOnceObjectAvailable)
   assignVariable('getLineNumFromText', getLineNumFromText)
   assignVariable('positionPopup', positionPopup)
+  assignVariable('getTextForBubble', getTextForBubble)
+  assignVariable('getRawTextForBubble', getRawTextForBubble)
+  assignVariable('trimSelectedText', trimSelectedText)
   #assignVariable('synthesizeSpeech', synthesizeSpeech)
   #assignVariable('getTextForBubble', exposeFunction('getTextForBubble', (textOutput) -> console.log(textOutput)))
   executeInPage(() ->
@@ -184,17 +199,6 @@ haveNewText = () ->
   synthesizeSpeech(root.currentText, root.selectedLanguage)
   positionPopup()
 
-trimSelectedText = (selectedText) ->
-  if selectedText.indexOf('http://geza') != -1
-    selectedText = selectedText[...selectedText.indexOf('http://geza')]
-  parenIndexes = (selectedText.indexOf(x) for x in ')）' when selectedText.indexOf(x) != -1)
-  if parenIndexes.length > 0
-    parenIndex = Math.min.apply(Math, parenIndexes)
-    lineNum = selectedText[...parenIndex].trim()
-    if not isNaN(lineNum)
-      selectedText = selectedText[parenIndex+1..]
-  return selectedText
-
 getOCR = (imagedata, callback) ->
   dataPrefix = 'data:image/png;base64,'
   if imagedata.indexOf(dataPrefix) == 0
@@ -287,7 +291,7 @@ setInterval(() ->
   if not selectedText?
     return
   selectedText = selectedText.split('<br>')
-  selectedText = (line for line in selectedText when line.indexOf('lang=') != 0).join(' ')
+  selectedText = (line for line in selectedText when line.indexOf('lang=') != 0 and line.indexOf('showenglish') != 0).join(' ')
   selectedText = $('<span>').html(selectedText).text()
   selectedText = trimSelectedText(selectedText)
   if selectedText != root.currentText
