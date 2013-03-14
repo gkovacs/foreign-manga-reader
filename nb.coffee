@@ -10,7 +10,8 @@ positionPopup = root.positionPopup = () ->
   if not popupDialog? or popupDialog.length == 0
     return
   console.log 'setting offset!'
-  popupDialog.offset({'left': selectedBubble.offset().left, 'top': selectedBubble.offset().top})
+  popupDialog.offset({'left': selectedBubble.offset().left, 'top': selectedBubble.offset().top - Math.max(popupDialog.height()+10, 150)})
+  #popupDialog.css('left', selectedBubble.offset().left).css('bottom', $(window).height() - selectedBubble.offset().top).css('height', '100%')
 
 getLineNumFromText = (selectedText) ->
   parenIndexes = (selectedText.indexOf(x) for x in ')）' when selectedText.indexOf(x) != -1)
@@ -195,9 +196,11 @@ haveNewText = () ->
   #if selectedOffset?
   #  $('.ui-dialog').offset({'left': selectedOffset.left, 'top': selectedOffset.top})
   $('#popupSentenceDisplay').css('max-height', '500px')
-  root.addSentence(root.currentText, root.selectedLanguage, $('#popupSentenceDisplay'), true)
+  root.addSentence(root.currentText, root.selectedLanguage, $('#popupSentenceDisplay'), true, () ->
+    positionPopup()
+  )
   synthesizeSpeech(root.currentText, root.selectedLanguage)
-  positionPopup()
+  #positionPopup()
 
 getOCR = (imagedata, callback) ->
   dataPrefix = 'data:image/png;base64,'

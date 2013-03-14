@@ -140,6 +140,7 @@
       });
       this.mouseleave(function() {
         var myId, rootId, _j, _len1, _ref1;
+        if ($('audio')[0] != null) $('audio')[0].pause();
         _ref1 = $('.hovered');
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
           x = _ref1[_j];
@@ -397,9 +398,9 @@
     }, 10);
   };
 
-  addSentence = root.addSentence = function(sentence, lang, renderTarget, clearExisting) {
+  addSentence = root.addSentence = function(sentence, lang, renderTarget, clearExisting, callback) {
     if (clearExisting == null) clearExisting = false;
-    return addSentences([sentence], lang, renderTarget, clearExisting);
+    return addSentences([sentence], lang, renderTarget, clearExisting, callback);
   };
 
   if (!(root.serverLocation != null)) root.serverLocation = '';
@@ -517,7 +518,7 @@
     return objToArray(obj);
   };
 
-  addSentences = root.addSentences = function(sentences, lang, renderTarget, clearExisting) {
+  addSentences = root.addSentences = function(sentences, lang, renderTarget, clearExisting, doneCallback) {
     var parseHierarchyAndTranslationsForLang, _ref;
     if (clearExisting == null) clearExisting = false;
     if (!(lang != null) && !(renderTarget != null)) {
@@ -534,15 +535,14 @@
       });
     };
     return async.mapSeries(sentences, parseHierarchyAndTranslationsForLang, function(err, results) {
-      var i, ref_hierarchy, sentence, translations, _i, _ref1, _ref2, _results;
+      var i, ref_hierarchy, sentence, translations, _i, _ref1, _ref2;
       if (clearExisting) renderTarget.html('');
-      _results = [];
       for (i = _i = 0, _ref1 = results.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
         sentence = sentences[i];
         _ref2 = results[i], ref_hierarchy = _ref2[0], translations = _ref2[1];
-        _results.push(renderSentence(sentence, ref_hierarchy, translations, lang, renderTarget));
+        renderSentence(sentence, ref_hierarchy, translations, lang, renderTarget);
       }
-      return _results;
+      if (doneCallback != null) return doneCallback();
     });
   };
 

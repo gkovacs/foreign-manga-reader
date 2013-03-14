@@ -15,7 +15,7 @@
     console.log('setting offset!');
     return popupDialog.offset({
       'left': selectedBubble.offset().left,
-      'top': selectedBubble.offset().top
+      'top': selectedBubble.offset().top - Math.max(popupDialog.height() + 10, 150)
     });
   };
 
@@ -241,9 +241,10 @@
     $('.ui-dialog').css('width', 'auto');
     $('.ui-dialog').css('height', 'auto');
     $('#popupSentenceDisplay').css('max-height', '500px');
-    root.addSentence(root.currentText, root.selectedLanguage, $('#popupSentenceDisplay'), true);
-    synthesizeSpeech(root.currentText, root.selectedLanguage);
-    return positionPopup();
+    root.addSentence(root.currentText, root.selectedLanguage, $('#popupSentenceDisplay'), true, function() {
+      return positionPopup();
+    });
+    return synthesizeSpeech(root.currentText, root.selectedLanguage);
   };
 
   getOCR = function(imagedata, callback) {
