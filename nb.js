@@ -15,7 +15,7 @@
     console.log('setting offset!');
     return popupDialog.offset({
       'left': selectedBubble.offset().left,
-      'top': selectedBubble.offset().top - Math.max(popupDialog.height() + 10, 150)
+      'top': selectedBubble.offset().top - Math.max(popupDialog.height() + 10, 110)
     });
   };
 
@@ -216,14 +216,19 @@
     return console.log(request);
   });
 
-  synthesizeSpeech = root.synthesizeSpeech = function(sentence, lang) {
+  synthesizeSpeech = root.synthesizeSpeech = function(sentence, lang, isloop) {
     var audioTag;
     audioTag = $('audio')[0];
     if (!audioTag) {
-      $('body').append($('<audio>').attr('autoplay', true).attr('loop', true));
+      $('body').append($('<audio>').attr('autoplay', true).attr('loop', isloop));
       audioTag = $('audio')[0];
     }
     audioTag.src = 'http://geza.csail.mit.edu:1357/synthesize?sentence=' + sentence + '&lang=' + lang;
+    if (isloop || !(isloop != null)) {
+      $('audio').attr('loop', true);
+    } else {
+      $('audio').attr('loop', false);
+    }
     return audioTag.play();
   };
 
@@ -244,7 +249,8 @@
     root.addSentence(root.currentText, root.selectedLanguage, $('#popupSentenceDisplay'), true, function() {
       return positionPopup();
     });
-    return synthesizeSpeech(root.currentText, root.selectedLanguage);
+    synthesizeSpeech(root.currentText, root.selectedLanguage, false);
+    return positionPopup();
   };
 
   getOCR = function(imagedata, callback) {

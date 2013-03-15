@@ -10,7 +10,7 @@ positionPopup = root.positionPopup = () ->
   if not popupDialog? or popupDialog.length == 0
     return
   console.log 'setting offset!'
-  popupDialog.offset({'left': selectedBubble.offset().left, 'top': selectedBubble.offset().top - Math.max(popupDialog.height()+10, 150)})
+  popupDialog.offset({'left': selectedBubble.offset().left, 'top': selectedBubble.offset().top - Math.max(popupDialog.height()+10, 110)})
   #popupDialog.css('left', selectedBubble.offset().left).css('bottom', $(window).height() - selectedBubble.offset().top).css('height', '100%')
 
 getLineNumFromText = (selectedText) ->
@@ -171,12 +171,16 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) ->
   console.log request
 )
 
-synthesizeSpeech = root.synthesizeSpeech = (sentence, lang) ->
+synthesizeSpeech = root.synthesizeSpeech = (sentence, lang, isloop) ->
   audioTag = $('audio')[0]
   if not audioTag
-    $('body').append($('<audio>').attr('autoplay', true).attr('loop', true))
+    $('body').append($('<audio>').attr('autoplay', true).attr('loop', isloop))
     audioTag = $('audio')[0]
   audioTag.src = 'http://geza.csail.mit.edu:1357/synthesize?sentence=' + sentence + '&lang=' + lang
+  if isloop or not isloop?
+    $('audio').attr('loop', true)
+  else
+    $('audio').attr('loop', false)
   audioTag.play()
 
 haveNewText = () ->
@@ -199,8 +203,8 @@ haveNewText = () ->
   root.addSentence(root.currentText, root.selectedLanguage, $('#popupSentenceDisplay'), true, () ->
     positionPopup()
   )
-  synthesizeSpeech(root.currentText, root.selectedLanguage)
-  #positionPopup()
+  synthesizeSpeech(root.currentText, root.selectedLanguage, false)
+  positionPopup()
 
 getOCR = (imagedata, callback) ->
   dataPrefix = 'data:image/png;base64,'

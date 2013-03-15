@@ -158,14 +158,19 @@
     };
   })($);
 
-  synthesizeSpeech = root.synthesizeSpeech = function(sentence, lang) {
+  synthesizeSpeech = root.synthesizeSpeech = function(sentence, lang, isloop) {
     var audioTag;
     audioTag = $('audio')[0];
     if (!audioTag) {
-      $('body').append($('<audio>').attr('autoplay', true).attr('loop', true));
+      $('body').append($('<audio>').attr('autoplay', true).attr('loop', isloop));
       audioTag = $('audio')[0];
     }
-    audioTag.src = 'http://geza.csail.mit.edu:1357/synthesize?sentence=' + sentence.trim() + '&lang=' + lang;
+    audioTag.src = 'http://geza.csail.mit.edu:1357/synthesize?sentence=' + sentence + '&lang=' + lang;
+    if (isloop || !(isloop != null)) {
+      $('audio').attr('loop', true);
+    } else {
+      $('audio').attr('loop', false);
+    }
     return audioTag.play();
   };
 
